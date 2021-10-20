@@ -1,7 +1,17 @@
-# convert-spring-properties-to-env-vars
+# Convert Spring Properties to Env Vars
+
 Bash script to convert a file of properties in the Spring canonical-form into proper environment variables (particularly useful for using in a Kubernetes ConfigMap).
 
+# Usage
+
+`./convert-spring-properties-to-env-vars.sh [file-to-convert]`
+
+E.g.:  
+`./convert-spring-properties-to-env-vars.sh application.properties`
+
 # Example
+
+Given the following properties file:  
 ```
 greg@ubuntu:~$ cat application.properties
 # Default port and app name
@@ -17,6 +27,8 @@ management.endpoint.health.probes.enabled=true
 spring.redis.host=127.0.0.1
 spring.redis.port=15221
 ```
+
+The converted output will be displayed to stdout (or redirected to a file using the > operator):  
 
 ```
 greg@ubuntu:~$ ./convert-spring-properties-to-env-vars.sh application.properties
