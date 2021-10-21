@@ -3,18 +3,25 @@
 # Greg Trout | grtrout@gmail.com
 
 convert_key() {
-  UPPERCASE_KEY=$(echo ${1} | tr "[:lower:]" "[:upper:]")
-  DASH_REMOVED_KEY=$(echo "${UPPERCASE_KEY//-}")
-  FINAL_KEY="${DASH_REMOVED_KEY//[^A-Za-z0-9]/_}"
+  local UPPERCASED=$(echo ${1} | tr "[:lower:]" "[:upper:]")
+  local DASHES_REMOVED=$(echo "${UPPERCASED//-/}")
+  KEY="${DASHES_REMOVED//[^[:alnum:]]/_}" # Convert non-alphanumeric chars to underscores
+}
+
+convert_value() { # Trim leading and trailing spaces
+  local TRIMMED_LEADING="${1#"${1%%[![:space:]]*}"}"
+  local TRIMMED_TRAILING="${TRIMMED_LEADING%"${TRIMMED_LEADING##*[![:space:]]}"}"
+  VALUE=$TRIMMED_TRAILING
 }
 
 while IFS='' read -r LINE || [ -n "${LINE}" ]; do
-  [[ "${LINE}" =~ ^[[:space:]]*# ]] && continue  # Ignore comments
+  [[ "${LINE}" =~ ^[[:space:]]*# ]] && continue # Ignore comments
   if [ -n "${LINE}" ]; then
-    KEY_ONLY=${LINE%=*}  # Delete from = to the right
-    VALUE_ONLY=${LINE#*=}  # Delete up to =
-    convert_key ${KEY_ONLY}
-    echo "${FINAL_KEY}: '${VALUE_ONLY}'"
+    KEY=${LINE%=*}   # Delete from = to the right
+    VALUE=${LINE#*=} # Delete up to =
+    convert_key ${KEY}
+    convert_value ${VALUE}
+    echo "${KEY}: \"${VALUE}\"" # Echo output to stdout
   fi
 done <${1}
 
