@@ -8,12 +8,24 @@ convert_key() {
   KEY="${DASHES_REMOVED//[^[:alnum:]]/_}" # Convert non-alphanumeric chars to underscores
 }
 
-convert_value() { # Trim leading and trailing spaces
+convert_value() {
+  # Trim leading and trailing spaces
   local TRIMMED_LEADING="${1#"${1%%[![:space:]]*}"}"
   local TRIMMED_TRAILING="${TRIMMED_LEADING%"${TRIMMED_LEADING##*[![:space:]]}"}"
-  VALUE=$TRIMMED_TRAILING
+
+  # Determine first and last char of value
+  local FIRST_CHAR=${TRIMMED_TRAILING:0:1}
+  local LAST_CHAR=${TRIMMED_TRAILING: -1}
+
+  # Only add double quotes around value if it's not already surrounded by single or double quotes
+  if ([[ ${FIRST_CHAR} = ${LAST_CHAR} ]]) && ([[ ${FIRST_CHAR} = \' || ${FIRST_CHAR} = \" ]]); then
+    VALUE="${TRIMMED_TRAILING}"
+  else
+    VALUE="\"${TRIMMED_TRAILING}\"" 
+  fi
 }
 
+# Loop through each line of input file
 while IFS='' read -r LINE || [ -n "${LINE}" ]; do
   [[ "${LINE}" =~ ^[[:space:]]*# ]] && continue # Ignore comments
   if [ -n "${LINE}" ]; then
@@ -21,7 +33,6 @@ while IFS='' read -r LINE || [ -n "${LINE}" ]; do
     VALUE=${LINE#*=} # Delete up to =
     convert_key ${KEY}
     convert_value ${VALUE}
-    echo "${KEY}: \"${VALUE}\"" # Echo output to stdout
+    echo "${KEY}: ${VALUE}" # Echo output to stdout
   fi
 done <${1}
-
